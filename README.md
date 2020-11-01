@@ -9,6 +9,8 @@ Sender вычитывает уведомление из очереди, уста
 После этого сохраняет отправленное уведомление в базу.
 
 #### How to run:
+Перед запуском необходимо настроить [конфигурационные файлы](./conf).
+
 ```shell script
     git clone https://github.com/KonstantinPronin/email-sending-service.git
     cd email-sending-service
