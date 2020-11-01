@@ -1,0 +1,6 @@
+FROM golang:1.15.3-alpine
+ENV WORK /home/app
+WORKDIR $WORK
+COPY . $WORK
+RUN go build -o build/sender ./cmd/sender/main/main.go
+CMD ./build/sender

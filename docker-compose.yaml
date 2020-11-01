@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  database:
+    image: "mongo:4.4.1"
+    hostname: "database"
+    environment:
+      MONGO_INITDB_DATABASE: "email"
+      MONGO_INITDB_ROOT_USERNAME: "mongo"
+      MONGO_INITDB_ROOT_PASSWORD: "mongo"
+    volumes:
+      - email-sending-service-db:/data/db
+
+  queue:
+    image: "rabbitmq:3.8-alpine"
+    hostname: "queue"
+    environment:
+      RABBITMQ_DEFAULT_USER: "rabbit"
+      RABBITMQ_DEFAULT_PASS: "rabbit"
+    volumes:
+      - email-sending-service-mq:/var/lib/rabbitmq/
+
+  acceptor:
+    build:
+      context: .
+      dockerfile: ./docker/acceptor
+    ports:
+      - 8080:8080
+    depends_on:
+      - database
+      - queue
+
+  sender:
+    build:
+      context: .
+      dockerfile: ./docker/sender
+    depends_on:
+      - database
+      - queue
+
+volumes:
+  email-sending-service-db:
+  email-sending-service-mq:
