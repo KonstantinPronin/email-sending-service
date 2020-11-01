@@ -34,23 +34,21 @@ func NewRabbitMqClient(
 func (r *RabbitMqClient) ListenAndServe() error {
 	r.logger.Info("Starting queue listener")
 
-	msgs, err := r.queue.Consume(false, false, false, false, nil)
-	if err != nil {
-		r.logger.Error(err.Error())
-		return err
-	}
-
 	r.initPool()
 	defer close(r.pool)
 
-	r.logger.Info("Successful queue listener start")
-	for delivery := range msgs {
-		worker := <-r.pool
-		go worker(delivery)
-	}
+	for {
+		msgs, err := r.queue.Consume(false, false, false, false, nil)
+		if err != nil {
+			r.logger.Error(err.Error())
+			return err
+		}
 
-	r.logger.Info("Successful queue listener stop")
-	return nil
+		for delivery := range msgs {
+			worker := <-r.pool
+			go worker(delivery)
+		}
+	}
 }
 
 func (r *RabbitMqClient) initPool() {

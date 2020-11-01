@@ -67,10 +67,6 @@ func (q *Queue) Close() error {
 }
 
 func (q *Queue) Reconnect() error {
-	if err := q.Close(); err != nil {
-		return err
-	}
-
 	for attempt := constants.MaxConnectAttempts; attempt > 0; attempt-- {
 		err := q.Connect()
 

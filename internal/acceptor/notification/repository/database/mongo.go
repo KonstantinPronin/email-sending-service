@@ -40,7 +40,7 @@ func (m *MongoDbClient) Get(id string) (*model.Notification, error) {
 }
 
 func (m *MongoDbClient) GetList(page, perPage int64) (model.NotificationList, int64, error) {
-	var result model.NotificationList
+	result := model.NotificationList{}
 	page = page - 1
 	opt := options.Find()
 	filter := bson.M{}

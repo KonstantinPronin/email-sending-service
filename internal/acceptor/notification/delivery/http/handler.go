@@ -62,7 +62,7 @@ func (handler *AcceptorHandler) GetPage(ctx echo.Context) error {
 
 	perPage, err := strconv.Atoi(ctx.QueryParam("per_page"))
 	if err != nil || perPage < 1 {
-		page = constants.DefaultPageSize
+		perPage = constants.DefaultPageSize
 	}
 
 	list, total, err := handler.usecase.GetList(int64(page), int64(perPage))
@@ -70,12 +70,13 @@ func (handler *AcceptorHandler) GetPage(ctx echo.Context) error {
 		return err
 	}
 
+	handler.addPageHeader(page, perPage, int(total), ctx)
+
 	if _, err := easyjson.MarshalToWriter(list, ctx.Response().Writer); err != nil {
 		handler.logger.Error(fmt.Sprintf("Response marshal error: %s", err.Error()))
 		return err
 	}
 
-	handler.addPageHeader(page, perPage, int(total), ctx)
 	return nil
 }
 
@@ -109,16 +110,16 @@ func (handler *AcceptorHandler) AcceptMessage(ctx echo.Context) error {
 
 func (handler *AcceptorHandler) addPageHeader(page, perPage, total int, ctx echo.Context) {
 	totalPages := int(math.Ceil(float64(total) / float64(perPage)))
-	ctx.Response().Header().Add(constants.Total, strconv.Itoa(total))
-	ctx.Response().Header().Add(constants.TotalPages, strconv.Itoa(totalPages))
-	ctx.Response().Header().Add(constants.PerPage, strconv.Itoa(perPage))
-	ctx.Response().Header().Add(constants.Page, strconv.Itoa(page))
+	ctx.Response().Header().Set(constants.Total, strconv.Itoa(total))
+	ctx.Response().Header().Set(constants.TotalPages, strconv.Itoa(totalPages))
+	ctx.Response().Header().Set(constants.PerPage, strconv.Itoa(perPage))
+	ctx.Response().Header().Set(constants.Page, strconv.Itoa(page))
 
 	if page+1 < totalPages {
-		ctx.Response().Header().Add(constants.NextPage, strconv.Itoa(page+1))
+		ctx.Response().Header().Set(constants.NextPage, strconv.Itoa(page+1))
 	}
 
 	if page-1 > 0 {
-		ctx.Response().Header().Add(constants.PrevPage, strconv.Itoa(page-1))
+		ctx.Response().Header().Set(constants.PrevPage, strconv.Itoa(page-1))
 	}
 }
