@@ -15,13 +15,13 @@ type MongoDbClient struct {
 }
 
 func (m *MongoDbClient) Save(notif *model.Notification) error {
-	res, err := m.db.GetConnection().Collection("notifications").InsertOne(context.Background(), notif)
+	_, err := m.db.GetConnection().Collection("notifications").InsertOne(context.Background(), notif)
 	if err != nil {
 		m.logger.Error(fmt.Sprintf("insert error: %s", err.Error()))
 		return err
 	}
 
-	m.logger.Info(fmt.Sprintf("Message %s was saved to database", res.InsertedID))
+	m.logger.Info(fmt.Sprintf("Message %s was saved to database", notif.ID))
 
 	return nil
 }

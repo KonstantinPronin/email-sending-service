@@ -23,6 +23,10 @@ func (e *Email) Transfer(notif *model.Notification) error {
 	auth := smtp.PlainAuth("", e.conf.Login, e.conf.Password, e.conf.Host)
 
 	if err := e.sendMail(addr, e.conf.Host, e.conf.Login, notif.To, auth, msg); err != nil {
+		if strings.Contains(strings.ToUpper(err.Error()), "OK") {
+			return nil
+		}
+
 		e.logger.Error(fmt.Sprintf("Sending to smtp error: %s", err.Error()))
 		return err
 	}
@@ -41,12 +45,7 @@ func (e *Email) sendMail(addr, host, from string, to []string, auth smtp.Auth, m
 	if err != nil {
 		return err
 	}
-
-	defer func() {
-		if err = conn.Close(); err != nil {
-			e.logger.Error(fmt.Sprintf("closing resources error: %s", err.Error()))
-		}
-	}()
+	defer conn.Close()
 
 	client, err := smtp.NewClient(conn, host)
 	if err != nil {
@@ -67,10 +66,19 @@ func (e *Email) sendMail(addr, host, from string, to []string, auth smtp.Auth, m
 		}
 	}
 
+	if err = e.writeMessage(client, msg); err != nil {
+		return err
+	}
+
+	return client.Quit()
+}
+
+func (e *Email) writeMessage(client *smtp.Client, msg []byte) error {
 	w, err := client.Data()
 	if err != nil {
 		return err
 	}
+
 	defer func() {
 		if err = w.Close(); err != nil {
 			e.logger.Error(fmt.Sprintf("closing resources error: %s", err.Error()))
@@ -81,7 +89,7 @@ func (e *Email) sendMail(addr, host, from string, to []string, auth smtp.Auth, m
 		return err
 	}
 
-	return client.Quit()
+	return nil
 }
 
 func NewEmail(

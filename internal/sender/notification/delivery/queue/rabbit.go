@@ -68,6 +68,9 @@ func (r *RabbitMqClient) work(delivery amqp.Delivery) {
 		if err = delivery.Reject(false); err != nil {
 			r.logger.Error(fmt.Sprintf("ack error: %s", err.Error()))
 		}
+
+		r.pool <- r.work
+		return
 	}
 
 	if err := r.usecase.Send(notif); err != nil {
@@ -79,6 +82,9 @@ func (r *RabbitMqClient) work(delivery amqp.Delivery) {
 		if err = delivery.Nack(false, true); err != nil {
 			r.logger.Error(fmt.Sprintf("ack error: %s", err.Error()))
 		}
+
+		r.pool <- r.work
+		return
 	}
 
 	if err := delivery.Ack(false); err != nil {
